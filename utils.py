@@ -4,8 +4,8 @@
 import numpy as np
 
 
-# function parses csv and returns a list of input matrices and output labels
-def parse_csv(filename, normalize=True):
+# function parses file and returns a list of input matrices and output labels
+def parse(filename, normalize=True):
     input_matricies = []
     output_labels = []
 
@@ -15,12 +15,12 @@ def parse_csv(filename, normalize=True):
                 continue
 
             line = line[:-1]  # remove newline for string
-            entries = line.split(',')
+            entries = line.split(' ')
 
             output_labels.append(entries[0])
             entries = entries[1:]
 
-            in_mat = [float(entry) for entry in entries]
+            in_mat = [float(entry.split(':')[0]) for entry in entries if entry]
 
             # normalize matrix
             if normalize:
@@ -41,6 +41,13 @@ def one_hot_encoding(labels):
     one_hot_map = {label: one_hot_matrix[i]
                    for i, label in enumerate(uniq_labels)}
 
-    encoding = np.vectorize(lambda x: one_hot_map[x])
+    return np.array([one_hot_map[label] for label in labels]), one_hot_map
 
-    return encoding(labels), one_hot_map
+
+# Map labels to indicies
+def map_labels(labels):
+    uniq_labels = np.unique(labels)
+
+    _map = {label: i for i, label in enumerate(uniq_labels)}
+
+    return np.array([_map[label] for label in labels]), _map
