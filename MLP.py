@@ -21,7 +21,7 @@ class MLP:
         def compose_func(a, x, w, b):
             return a(tf.matmul(x, w) + b)
 
-        prev_value = X  # tf.expand_dims(X, 0)
+        prev_value = X
         for i, entry in enumerate(self.network):
             prev_value = compose_func(entry['activation'],
                                       prev_value,

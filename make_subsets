@@ -1,0 +1,11 @@
+#!/bin/bash
+file=$1
+dir=$2
+num_subsets=$3
+
+for i in $(seq 1 "$num_subsets")
+do
+	path="$dir/subset_$i"
+	mkdir "$path"
+	python create_dataset.py "$file" "$path/train.csv" "$path/test.csv" --percentage 0.7
+done
