@@ -20,7 +20,7 @@ class Classifier:
 
     def __init__(self, num_input, num_units, num_classes,
                  batch_size=100, num_epochs=10, display=False,
-                 blacklist=[]):
+                 blacklist=[], whitelist=[]):
         """Creates classifier for finding the version"""
 
         # Network parameters
@@ -32,6 +32,11 @@ class Classifier:
         self.display = display
 
         self.blacklist = blacklist
+        self.whitelist = whitelist
+
+        assert not (self.blacklist and self.whitelist), (
+            'Both whitelist and blacklist are defined'
+        )
 
         # Placeholders
         self.X = tf.placeholder('float', [None, num_input], name='X')
@@ -64,7 +69,7 @@ class Classifier:
         Training file must be csv formatted
         """
 
-        trX, trY = grab_data(train_file, self.blacklist)
+        trX, trY = grab_data(train_file, self.blacklist, self.whitelist)
         training_size = len(trX)
 
         assert self.batch_size < training_size, (
@@ -105,7 +110,7 @@ class Classifier:
         Training file must be csv formatted
         """
 
-        teX, teY = grab_data(test_file, self.blacklist)
+        teX, teY = grab_data(test_file, self.blacklist, self.whitelist)
 
         with tf.Session(config=self.config) as sess:
             self.saver.restore(sess, './model.ckpt')
@@ -125,11 +130,22 @@ class Classifier:
             print(val)
 
 
-def grab_data(filename, blacklist=[]):
+def grab_data(filename, blacklist=[], whitelist=[]):
     data = pd.read_csv(filename)
 
-    for entry in blacklist:
-        data = data.drop(entry, 1)
+    assert not (blacklist and whitelist), (
+        'Both whitelist and blacklist are defined'
+    )
+
+    names = data.columns[1:]
+
+    if not whitelist:
+        for entry in blacklist:
+            data = data.drop(entry, 1)
+    else:
+        for name in names:
+            if name not in whitelist:
+                data = data.drop(name, 1)
 
     X = data.values[:, 1:]
     Y = data.values[:, 0]
@@ -142,11 +158,22 @@ def grab_data(filename, blacklist=[]):
     return X.astype(np.float), _Y
 
 
-def get_dimensions(filename, blacklist=[]):
+def get_dimensions(filename, blacklist=[], whitelist=[]):
     data = pd.read_csv(filename)
 
-    for entry in blacklist:
-        data = data.drop(entry, 1)
+    assert not(blacklist and whitelist), (
+        'Both whitelist and blacklist are defined'
+    )
+
+    names = data.columns[1:]
+
+    if not whitelist:
+        for entry in blacklist:
+            data = data.drop(entry, 1)
+    else:
+        for name in names:
+            if name not in whitelist:
+                data = data.drop(name, 1)
 
     X = data.values[:, 1:]
     Y = data.values[:, 0]
